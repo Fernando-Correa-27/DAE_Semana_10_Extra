@@ -12,32 +12,31 @@ import { readStoredDecisions, writeStoredDecisions } from "../lib/storage";
 // Todo lo demás (pendientes, decididos, contadores, filtrados) se CALCULA en cada dibujado.
 
 export default function Inbox({ plans }) {
-  // TODO 1 — Estado. Sustituye cada valor de la derecha por una llamada a useState:
-  //   · decisions: empieza con lo que haya guardado (inicialización perezosa: useState(readStoredDecisions),
-  //     pasando la FUNCIÓN, sin llamarla).
-  //   · query: empieza en "".
-  const [decisions, setDecisions] = [{}, () => {}];
-  const [query, setQuery] = ["", () => {}];
+  const [decisions, setDecisions] = useState(readStoredDecisions);
+  const [query, setQuery] = useState("");
 
-  // TODO 2 — decide(id, verdict): anota la decisión SIN modificar el objeto actual.
-  //   Crea un objeto nuevo con la decisión añadida ({ ...current, [id]: verdict }) y pásalo a setDecisions.
-  //   Usa la forma funcional: setDecisions((current) => ...).
-  function decide(id, verdict) {}
+  function decide(id, verdict) {
+    setDecisions((current) => ({ ...current, [id]: verdict }));
+  }
 
-  // TODO 3 — Derivados. Calcúlalos a partir de plans, decisions y query; NO los guardes en estado.
-  //   · pending: los planes cuyo id NO está en decisions.
-  //   · decided: los planes cuyo id SÍ está en decisions.
-  //   · visible: los pendientes cuyo `op` o cuyo targetLabel(plan.target) contiene `query`
-  //     (sin distinguir mayúsculas ni espacios al borde). Con query vacío, todos los pendientes.
-  const pending = plans;
-  const decided = [];
-  const visible = pending;
+  const pending = plans.filter((plan) => !(plan.id in decisions));
+  const decided = plans.filter((plan) => plan.id in decisions);
+  const queryLower = query.trim().toLowerCase();
+  const visible = queryLower
+    ? pending.filter(
+        (plan) =>
+          plan.op.toLowerCase().includes(queryLower) ||
+          targetLabel(plan.target).toLowerCase().includes(queryLower)
+      )
+    : pending;
 
-  // TODO 4 — clearSearch(): vacía la búsqueda.
-  function clearSearch() {}
+  function clearSearch() {
+    setQuery("");
+  }
 
-  // TODO 5 — Persistencia. Cada vez que cambie `decisions`, guárdalas con writeStoredDecisions(decisions)
-  //   dentro de un useEffect con la dependencia correcta.
+  useEffect(() => {
+    writeStoredDecisions(decisions);
+  }, [decisions]);
 
   return (
     <section className="inbox" aria-labelledby="inbox-title">
