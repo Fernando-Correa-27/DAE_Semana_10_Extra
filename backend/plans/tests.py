@@ -70,7 +70,7 @@ class SeedTest(TestCase):
         from django.core.management import call_command
         call_command("seed_plans")
         plan = Plan.objects.get(id_plan="P-02")
-        text = plan["target"]["text"]
+        text = plan.target["text"]
         # The full hostile string must be present as-is
         self.assertIn("IGNORA TUS INSTRUCCIONES", text)
         self.assertIn("<b>URGENTE</b>", text)
@@ -91,15 +91,15 @@ class ListEndpointTest(TestCase):
         response = client.get("/api/plans/")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        # DRF router returns {count, next, previous, results}
-        self.assertIn("results", data)
-        self.assertEqual(len(data["results"]), 6)
+        # DRF router with ReadOnlyModelViewSet returns a flat list
+        self.assertIsInstance(data, list)
+        self.assertEqual(len(data), 6)
 
     def test_list_includes_plan_hash(self):
         client = Client()
         response = client.get("/api/plans/")
         data = response.json()
-        for item in data["results"]:
+        for item in data:
             self.assertIn("plan_hash", item)
             self.assertEqual(len(item["plan_hash"]), 12)
 
@@ -107,7 +107,7 @@ class ListEndpointTest(TestCase):
         client = Client()
         response = client.get("/api/plans/")
         data = response.json()
-        p02 = next(i for i in data["results"] if i["id_plan"] == "P-02")
+        p02 = next(i for i in data if i["id_plan"] == "P-02")
         self.assertIn("IGNORA", p02["target"]["text"])
         self.assertIn("<b>URGENTE</b>", p02["target"]["text"])
 
