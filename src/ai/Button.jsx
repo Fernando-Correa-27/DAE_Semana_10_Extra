@@ -1,8 +1,6 @@
-export default function Button({ variant = "primary", children, className = "", ...rest }) {
-  const classes = ["btn", `btn-${variant}`, className].filter(Boolean).join(" ");
-
+export default function Button({ variant = "primary", children, ...rest }) {
   return (
-    <button type="button" className={classes} {...rest}>
+    <button className={`btn btn-${variant}`} type="button" {...rest}>
       {children}
     </button>
   );

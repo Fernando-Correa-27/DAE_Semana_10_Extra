@@ -1,16 +1,10 @@
-import { useState } from "react";
 import Button from "./Button";
 import HashConfirm from "./HashConfirm";
-import { VERDICT_LABELS } from "../lib/plans";
 
+// Already written: this card only SHOWS a plan and tells its parent what the person decided.
+// It keeps no state of its own: whether the plan is still pending is the parent's business.
 export default function PlanCard({ plan, onDecide }) {
-  const [verdict, setVerdict] = useState(null);
   const isDestructive = plan.risk === "R2";
-
-  function handleDecision(value) {
-    setVerdict(value);
-    onDecide(plan.id, value);
-  }
 
   return (
     <article className={`plan-card plan-card-${plan.risk.toLowerCase()}`} aria-label={`Plan ${plan.id}`}>
@@ -38,18 +32,19 @@ export default function PlanCard({ plan, onDecide }) {
         </dd>
       </dl>
 
-      {verdict ? (
-        <p className="plan-card-verdict">Decidido: {VERDICT_LABELS[verdict]}</p>
+      {isDestructive ? (
+        <div className="plan-card-actions">
+          <HashConfirm hash={plan.plan_hash} onConfirm={() => onDecide(plan.id, "approved")} />
+          <Button variant="ghost" onClick={() => onDecide(plan.id, "rejected")}>
+            Rechazar
+          </Button>
+        </div>
       ) : (
         <div className="plan-card-actions">
-          {isDestructive ? (
-            <HashConfirm hash={plan.plan_hash} onConfirm={() => handleDecision("approved")} />
-          ) : (
-            <Button variant="primary" onClick={() => handleDecision("approved")}>
-              Aprobar
-            </Button>
-          )}
-          <Button variant="ghost" onClick={() => handleDecision("rejected")}>
+          <Button variant="primary" onClick={() => onDecide(plan.id, "approved")}>
+            Aprobar
+          </Button>
+          <Button variant="ghost" onClick={() => onDecide(plan.id, "rejected")}>
             Rechazar
           </Button>
         </div>
